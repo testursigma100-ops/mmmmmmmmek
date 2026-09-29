@@ -7,6 +7,7 @@ dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
 const app = express();
 
 app.use(express.json());
@@ -14,49 +15,71 @@ app.use(express.static(__dirname));
 
 app.post("/api/chat", async (req, res) => {
   try {
-    const { messages } = req.body;
+    const { messages = [] } = req.body;
+
     if (!process.env.GEMINI_API_KEY) {
-      return res.status(500).json({ error: "GEMINI_API_KEY belum diatur." });
+      return res.status(500).json({
+        error: "GEMINI_API_KEY belum diatur."
+      });
     }
 
-    const contents = (messages || []).map(m => ({
-      role: m.role === "assistant" ? "model" : "user",
-      parts: [{ text: String(m.content) }]
-    }));
+    // Gabungkan chat menjadi satu input
+    const conversation = messages
+      .map((m) => {
+        const role = m.role === "assistant" ? "AI" : "User";
+        return `${role}: ${String(m.content)}`;
+      })
+      .join("\n\n");
 
     const response = await fetch(
-      "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+      "https://generativelanguage.googleapis.com/v1beta/interactions",
       {
         method: "POST",
+
         headers: {
           "Content-Type": "application/json",
           "x-goog-api-key": process.env.GEMINI_API_KEY
         },
-        body: JSON.stringify({ contents })
+
+        body: JSON.stringify({
+          model: "gemini-3.8-flash",
+          input: conversation
+        })
       }
     );
 
     const data = await response.json();
 
     if (!response.ok) {
+      console.error("Gemini API Error:", data);
+
       return res.status(response.status).json({
-        error: data?.error?.message || "Gemini API error"
+        error:
+          data?.error?.message ||
+          "Gemini API error"
       });
     }
 
     const text =
-      data?.candidates?.[0]?.content?.parts
-        ?.map(p => p.text || "")
-        .join("") || "Gemini tidak mengembalikan jawaban.";
+      data?.output_text ||
+      "Gemini tidak mengembalikan jawaban.";
 
-    res.json({ text });
+    res.json({
+      text
+    });
+
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Server error." });
+
+    console.error("Server Error:", err);
+
+    res.status(500).json({
+      error: err.message || "Server error."
+    });
   }
 });
 
 const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
-  console.log(`MY AI berjalan di http://localhost:${PORT}`);
+  console.log(`MY AI berjalan di port ${PORT}`);
 });
