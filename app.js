@@ -11,12 +11,26 @@ function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
 
 function addMessage(role, text){
   welcome?.remove();
-  messages.push({role, content:text});
+
+  // Keep API roles correct so conversation history is preserved.
+  const apiRole = role === 'ai' ? 'assistant' : 'user';
+  messages.push({role: apiRole, content: text});
+
   const row = document.createElement('div');
   row.className = `msg ${role}`;
+
   const bubble = document.createElement('div');
   bubble.className = 'bubble';
-  bubble.textContent = text;
+
+  if(role === 'ai' && window.marked && window.DOMPurify){
+    bubble.classList.add('markdown');
+    bubble.innerHTML = DOMPurify.sanitize(
+      marked.parse(text, {gfm:true, breaks:true})
+    );
+  }else{
+    bubble.textContent = text;
+  }
+
   row.appendChild(bubble);
   chat.appendChild(row);
   scrollBottom();
