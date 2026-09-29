@@ -37,3 +37,17 @@ textarea::placeholder{color:#717583}
 @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 @media(min-width:761px){.app{border-left:1px solid #161820;border-right:1px solid #161820}.chat{padding-left:24px;padding-right:24px}}
+
+
+/* Markdown di balasan AI */
+.markdown{white-space:normal}
+.markdown p{margin:0 0 10px}
+.markdown p:last-child{margin-bottom:0}
+.markdown strong{font-weight:700;color:#fff}
+.markdown em{font-style:italic}
+.markdown ul,.markdown ol{margin:8px 0;padding-left:22px}
+.markdown li{margin:4px 0}
+.markdown code{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.06);border-radius:6px;padding:2px 5px;font-size:.9em}
+.markdown pre{overflow-x:auto;margin:10px 0;padding:12px;border-radius:10px;background:#090a0e;border:1px solid var(--line)}
+.markdown pre code{background:none;border:0;padding:0}
+.markdown a{color:#aaa0ff;text-decoration:underline}
