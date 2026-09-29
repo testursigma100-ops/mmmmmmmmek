@@ -4,17 +4,65 @@ const composer = document.getElementById('composer');
 const welcome = document.getElementById('welcome');
 const newChat = document.getElementById('newChat');
 const clearChat = document.getElementById('clearChat');
+const attachBtn = document.getElementById('attachBtn');
+const fileInput = document.getElementById('fileInput');
+const attachmentPreview = document.getElementById('attachmentPreview');
 
 let messages = [];
+let selectedFiles = [];
+let interactionId = null;
 
 function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
 
-function addMessage(role, text){
+function formatSize(bytes){
+  if(bytes < 1024) return bytes + ' B';
+  if(bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+
+function renderSelectedFiles(){
+  attachmentPreview.innerHTML = '';
+
+  selectedFiles.forEach((file, index) => {
+    const chip = document.createElement('div');
+    chip.className = 'file-chip';
+
+    const icon = document.createElement('span');
+    icon.className = 'file-icon';
+    icon.textContent = file.type.startsWith('image/') ? '🖼️' : '📎';
+
+    const name = document.createElement('div');
+    name.className = 'file-name';
+    name.textContent = file.name;
+
+    const size = document.createElement('div');
+    size.className = 'file-size';
+    size.textContent = formatSize(file.size);
+
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.className = 'file-remove';
+    remove.textContent = '×';
+    remove.setAttribute('aria-label', 'Hapus file');
+    remove.addEventListener('click', () => {
+      selectedFiles.splice(index, 1);
+      renderSelectedFiles();
+    });
+
+    chip.append(icon, name, size, remove);
+    attachmentPreview.appendChild(chip);
+  });
+
+  attachmentPreview.classList.toggle('show', selectedFiles.length > 0);
+}
+
+function addMessage(role, text, files = []){
   welcome?.remove();
 
-  // Keep API roles correct so conversation history is preserved.
-  const apiRole = role === 'ai' ? 'assistant' : 'user';
-  messages.push({role: apiRole, content: text});
+  if(text) {
+    const apiRole = role === 'ai' ? 'assistant' : 'user';
+    messages.push({role: apiRole, content: text});
+  }
 
   const row = document.createElement('div');
   row.className = `msg ${role}`;
@@ -25,10 +73,38 @@ function addMessage(role, text){
   if(role === 'ai' && window.marked && window.DOMPurify){
     bubble.classList.add('markdown');
     bubble.innerHTML = DOMPurify.sanitize(
-      marked.parse(text, {gfm:true, breaks:true})
+      marked.parse(text || '', {gfm:true, breaks:true})
     );
-  }else{
+  }else if(text){
     bubble.textContent = text;
+  }
+
+  if(files.length){
+    const fileList = document.createElement('div');
+    fileList.className = 'message-files';
+
+    files.forEach(file => {
+      const item = document.createElement('div');
+      item.className = 'message-file';
+
+      if(file.type.startsWith('image/')){
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(file);
+        img.alt = file.name;
+        item.appendChild(img);
+      }
+
+      const meta = document.createElement('div');
+      meta.className = 'message-file-meta';
+      meta.innerHTML = `<strong></strong><span></span>`;
+      meta.querySelector('strong').textContent = file.name;
+      meta.querySelector('span').textContent = formatSize(file.size);
+      item.appendChild(meta);
+
+      fileList.appendChild(item);
+    });
+
+    bubble.appendChild(fileList);
   }
 
   row.appendChild(bubble);
@@ -49,31 +125,46 @@ function addTyping(){
 
 function removeTyping(){ document.getElementById('typing')?.remove(); }
 
-async function askAI(){
+async function askAI(text, files){
+  const formData = new FormData();
+  formData.append('message', text);
+  if(interactionId) formData.append('previous_interaction_id', interactionId);
+
+  files.forEach(file => formData.append('files', file));
+
   const response = await fetch('/api/chat', {
     method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({messages})
+    body: formData
   });
+
   const data = await response.json();
-  if (!response.ok) throw new Error(data.error || 'Gemini API error');
+  if(!response.ok) throw new Error(data.error || 'Gemini API error');
+
+  interactionId = data.interaction_id || interactionId;
   return data.text;
 }
 
-composer.addEventListener('submit', async e => {
-  e.preventDefault();
+async function sendCurrentMessage(){
   const text = input.value.trim();
-  if(!text) return;
+  const files = [...selectedFiles];
+
+  if(!text && !files.length) return;
 
   input.value = '';
   input.style.height = 'auto';
-  addMessage('user', text);
+
+  selectedFiles = [];
+  renderSelectedFiles();
+
+  addMessage('user', text || 'File terlampir', files);
+
   input.disabled = true;
+  attachBtn.disabled = true;
   document.querySelector('.send').disabled = true;
   addTyping();
 
   try{
-    const reply = await askAI();
+    const reply = await askAI(text, files);
     removeTyping();
     addMessage('ai', reply);
   }catch(err){
@@ -82,9 +173,36 @@ composer.addEventListener('submit', async e => {
     console.error(err);
   }finally{
     input.disabled = false;
+    attachBtn.disabled = false;
     document.querySelector('.send').disabled = false;
     input.focus();
   }
+}
+
+composer.addEventListener('submit', async e => {
+  e.preventDefault();
+  await sendCurrentMessage();
+});
+
+attachBtn.addEventListener('click', () => fileInput.click());
+
+fileInput.addEventListener('change', () => {
+  const incoming = [...fileInput.files];
+
+  for(const file of incoming){
+    if(selectedFiles.length >= 5) break;
+    if(file.size > 25 * 1024 * 1024) continue;
+    if(!selectedFiles.some(existing =>
+      existing.name === file.name &&
+      existing.size === file.size &&
+      existing.lastModified === file.lastModified
+    )){
+      selectedFiles.push(file);
+    }
+  }
+
+  fileInput.value = '';
+  renderSelectedFiles();
 });
 
 input.addEventListener('input', () => {
@@ -112,6 +230,9 @@ bindSuggestions();
 
 function resetChat(){
   messages = [];
+  selectedFiles = [];
+  interactionId = null;
+  renderSelectedFiles();
   chat.innerHTML = `
     <div class="welcome" id="welcome">
       <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
@@ -125,5 +246,6 @@ function resetChat(){
     </div>`;
   bindSuggestions();
 }
+
 newChat.addEventListener('click', resetChat);
 clearChat.addEventListener('click', resetChat);
