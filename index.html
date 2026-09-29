@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#08090d" />
+  <title>AI — Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <main class="app">
+    <header class="topbar">
+      <button class="icon-btn" id="newChat" aria-label="Chat baru">＋</button>
+      <div class="brand">
+        <div class="brand-mark">✦</div>
+        <div>
+          <div class="brand-name">MY AI</div>
+          <div class="status"><span></span> Online</div>
+        </div>
+      </div>
+      <button class="icon-btn" id="clearChat" aria-label="Hapus chat">⌫</button>
+    </header>
+
+    <section class="chat" id="chat">
+      <div class="welcome" id="welcome">
+        <div class="welcome-orb">✦</div>
+        <h1>Halo 👋</h1>
+        <p>Ada yang mau lu tanyain?</p>
+        <div class="suggestions">
+          <button>Jelasin sesuatu dengan simpel</button>
+          <button>Bantu gue bikin ide</button>
+          <button>Tulis kode buat gue</button>
+        </div>
+      </div>
+    </section>
+
+    <form class="composer" id="composer">
+      <div class="input-wrap">
+        <textarea id="input" rows="1" placeholder="Tulis pesan..." autocomplete="off"></textarea>
+        <button class="send" type="submit" aria-label="Kirim">↑</button>
+      </div>
+      <div class="hint">AI bisa melakukan kesalahan. Cek informasi penting.</div>
+    </form>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
