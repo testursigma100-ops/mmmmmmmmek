@@ -114,7 +114,7 @@ function resetChat(){
   messages = [];
   chat.innerHTML = `
     <div class="welcome" id="welcome">
-      <div class="welcome-orb">✦</div>
+      <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
       <h1>Halo 👋</h1>
       <p>Ada yang mau lu tanyain?</p>
       <div class="suggestions">
