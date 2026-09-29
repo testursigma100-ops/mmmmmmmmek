@@ -29,38 +29,135 @@ function openSidebar(){
   sidebar.classList.add('open');
   sidebarBackdrop.classList.add('show');
 }
-function saveHistory(title){
-  if(!title) return;
-  const items = JSON.parse(localStorage.getItem(historyKey) || '[]');
-  const id = currentChatId || Date.now().toString();
-  currentChatId = id;
-  const existing = items.find(x => x.id === id);
-  if(existing) existing.title = title;
-  else items.unshift({id,title});
+function getHistory(){
+  try {
+    const parsed = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveCurrentChat(){
+  if(!currentChatId) return;
+
+  const items = getHistory();
+  const index = items.findIndex(x => x.id === currentChatId);
+  if(index === -1) return;
+
+  items[index] = {
+    ...items[index],
+    interactionId,
+    messages: messages.slice(-100)
+  };
+
   localStorage.setItem(historyKey, JSON.stringify(items.slice(0,30)));
   renderHistory();
 }
+
+function saveHistory(title){
+  if(!title) return;
+
+  const items = getHistory();
+  const id = currentChatId || Date.now().toString();
+  currentChatId = id;
+
+  const existing = items.find(x => x.id === id);
+
+  if(existing){
+    existing.title = existing.title || title;
+    existing.interactionId = interactionId;
+    existing.messages = messages.slice(-100);
+  }else{
+    items.unshift({
+      id,
+      title,
+      interactionId,
+      messages: messages.slice(-100)
+    });
+  }
+
+  localStorage.setItem(historyKey, JSON.stringify(items.slice(0,30)));
+  renderHistory();
+}
+
 function renderHistory(){
-  const items = JSON.parse(localStorage.getItem(historyKey) || '[]');
+  const items = getHistory();
   historyEl.innerHTML = '';
+
   if(!items.length){
     historyEl.innerHTML = '<div class="history-empty">Belum ada riwayat chat.</div>';
     return;
   }
+
   items.forEach(item => {
     const btn = document.createElement('button');
     btn.className = 'history-item' + (item.id === currentChatId ? ' active' : '');
-    btn.innerHTML = '<span>◌</span><span></span>';
-    btn.lastElementChild.textContent = item.title;
-    btn.addEventListener('click', () => {
-      currentChatId = item.id;
-      renderHistory();
-      closeSidebar();
-    });
+
+    const icon = document.createElement('span');
+    icon.textContent = '◌';
+
+    const title = document.createElement('span');
+    title.textContent = item.title || 'Chat baru';
+
+    btn.append(icon, title);
+    btn.addEventListener('click', () => loadChat(item.id));
     historyEl.appendChild(btn);
   });
 }
 
+function loadChat(id){
+  const item = getHistory().find(x => x.id === id);
+  if(!item) return;
+
+  currentChatId = item.id;
+  interactionId = item.interactionId || null;
+  messages = [];
+  selectedFiles = [];
+  renderSelectedFiles();
+
+  chat.innerHTML = '';
+
+  (item.messages || []).forEach(message => {
+    const role = message.role === 'assistant' || message.role === 'ai' ? 'ai' : 'user';
+    addMessage(role, message.content || '');
+  });
+
+  if(!item.messages || !item.messages.length){
+    resetChat(false);
+    currentChatId = item.id;
+    interactionId = item.interactionId || null;
+  }
+
+  renderHistory();
+  closeSidebar();
+  input.focus();
+}
+
+function resetChat(saveBeforeReset = true){
+  if(saveBeforeReset) saveCurrentChat();
+
+  messages = [];
+  selectedFiles = [];
+  interactionId = null;
+  currentChatId = null;
+  renderSelectedFiles();
+
+  chat.innerHTML = `
+    <div class="welcome" id="welcome">
+      <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
+      <h1>Halo 👋</h1>
+      <p>Ada yang mau lu tanyain?</p>
+      <div class="suggestions">
+        <button>Jelasin sesuatu dengan simpel</button>
+        <button>Bantu gue bikin ide</button>
+        <button>Tulis kode buat gue</button>
+      </div>
+    </div>`;
+
+  bindSuggestions();
+  renderHistory();
+}
 
 function formatSize(bytes){
   if(bytes < 1024) return bytes + ' B';
@@ -206,6 +303,7 @@ async function sendCurrentMessage(){
   renderSelectedFiles();
 
   addMessage('user', text || 'File terlampir', files);
+  saveCurrentChat();
 
   input.disabled = true;
   attachBtn.disabled = true;
@@ -216,6 +314,7 @@ async function sendCurrentMessage(){
     const reply = await askAI(text, files);
     removeTyping();
     addMessage('ai', reply);
+    saveCurrentChat();
   }catch(err){
     removeTyping();
     addMessage('ai', `Error: ${err.message}`);
@@ -277,25 +376,6 @@ function bindSuggestions(){
 }
 bindSuggestions();
 
-function resetChat(){
-  messages = [];
-  selectedFiles = [];
-  interactionId = null;
-  currentChatId = null;
-  renderSelectedFiles();
-  chat.innerHTML = `
-    <div class="welcome" id="welcome">
-      <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
-      <h1>Halo 👋</h1>
-      <p>Ada yang mau lu tanyain?</p>
-      <div class="suggestions">
-        <button>Jelasin sesuatu dengan simpel</button>
-        <button>Bantu gue bikin ide</button>
-        <button>Tulis kode buat gue</button>
-      </div>
-    </div>`;
-  bindSuggestions();
-}
 
 newChat.addEventListener('click', () => { resetChat(); closeSidebar(); });
 clearChat.addEventListener('click', resetChat);
