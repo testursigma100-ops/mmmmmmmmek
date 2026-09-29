@@ -42,7 +42,7 @@ app.post("/api/chat", async (req, res) => {
         },
 
         body: JSON.stringify({
-          model: "gemini-3.6-flash",
+          model: "gemini-3.5-flash-lite",
           input: conversation
         })
       }
