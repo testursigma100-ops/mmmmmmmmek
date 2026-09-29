@@ -4,6 +4,12 @@ const composer = document.getElementById('composer');
 const welcome = document.getElementById('welcome');
 const newChat = document.getElementById('newChat');
 const clearChat = document.getElementById('clearChat');
+const menuBtn = document.getElementById('menuBtn');
+const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
+const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+const historyEl = document.getElementById('history');
+const historyKey = 'ujayy_chat_history';
 const attachBtn = document.getElementById('attachBtn');
 const fileInput = document.getElementById('fileInput');
 const attachmentPreview = document.getElementById('attachmentPreview');
@@ -11,8 +17,50 @@ const attachmentPreview = document.getElementById('attachmentPreview');
 let messages = [];
 let selectedFiles = [];
 let interactionId = null;
+let currentChatId = null;
 
 function scrollBottom(){ chat.scrollTop = chat.scrollHeight; }
+
+function closeSidebar(){
+  sidebar.classList.remove('open');
+  sidebarBackdrop.classList.remove('show');
+}
+function openSidebar(){
+  sidebar.classList.add('open');
+  sidebarBackdrop.classList.add('show');
+}
+function saveHistory(title){
+  if(!title) return;
+  const items = JSON.parse(localStorage.getItem(historyKey) || '[]');
+  const id = currentChatId || Date.now().toString();
+  currentChatId = id;
+  const existing = items.find(x => x.id === id);
+  if(existing) existing.title = title;
+  else items.unshift({id,title});
+  localStorage.setItem(historyKey, JSON.stringify(items.slice(0,30)));
+  renderHistory();
+}
+function renderHistory(){
+  const items = JSON.parse(localStorage.getItem(historyKey) || '[]');
+  historyEl.innerHTML = '';
+  if(!items.length){
+    historyEl.innerHTML = '<div class="history-empty">Belum ada riwayat chat.</div>';
+    return;
+  }
+  items.forEach(item => {
+    const btn = document.createElement('button');
+    btn.className = 'history-item' + (item.id === currentChatId ? ' active' : '');
+    btn.innerHTML = '<span>◌</span><span></span>';
+    btn.lastElementChild.textContent = item.title;
+    btn.addEventListener('click', () => {
+      currentChatId = item.id;
+      renderHistory();
+      closeSidebar();
+    });
+    historyEl.appendChild(btn);
+  });
+}
+
 
 function formatSize(bytes){
   if(bytes < 1024) return bytes + ' B';
@@ -150,6 +198,7 @@ async function sendCurrentMessage(){
 
   if(!text && !files.length) return;
 
+  if(!currentChatId && text) saveHistory(text.slice(0, 42));
   input.value = '';
   input.style.height = 'auto';
 
@@ -232,6 +281,7 @@ function resetChat(){
   messages = [];
   selectedFiles = [];
   interactionId = null;
+  currentChatId = null;
   renderSelectedFiles();
   chat.innerHTML = `
     <div class="welcome" id="welcome">
@@ -247,5 +297,9 @@ function resetChat(){
   bindSuggestions();
 }
 
-newChat.addEventListener('click', resetChat);
+newChat.addEventListener('click', () => { resetChat(); closeSidebar(); });
 clearChat.addEventListener('click', resetChat);
+menuBtn.addEventListener('click', openSidebar);
+sidebarClose.addEventListener('click', closeSidebar);
+sidebarBackdrop.addEventListener('click', closeSidebar);
+renderHistory();
