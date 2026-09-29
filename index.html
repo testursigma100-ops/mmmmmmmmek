@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#08090d" />
+  <meta name="theme-color" content="#212121" />
   <title>Ujayy</title>
   <link rel="icon" type="image/jpeg" href="assets/ujayy.jpg" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -12,44 +12,70 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <main class="app">
-    <header class="topbar">
-      <button class="icon-btn" id="newChat" aria-label="Chat baru">＋</button>
-      <div class="brand">
-        <div class="brand-mark"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
-        <div>
-          <div class="brand-name">UJAYY</div>
-          <div class="status"><span></span> Online</div>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <button class="new-chat-btn" id="newChat">
+          <span class="new-chat-icon">＋</span>
+          <span>Chat baru</span>
+        </button>
+        <button class="sidebar-close" id="sidebarClose" aria-label="Tutup menu">×</button>
+      </div>
+
+      <div class="history-title">Riwayat chat</div>
+      <div class="history" id="history"></div>
+
+      <div class="sidebar-bottom">
+        <div class="profile">
+          <img src="assets/ujayy.jpg" alt="Ujayy">
+          <div class="profile-text">
+            <strong>UJAYY</strong>
+            <span>Asisten AI</span>
+          </div>
+          <span class="profile-dot"></span>
         </div>
       </div>
-      <button class="icon-btn" id="clearChat" aria-label="Hapus chat">⌫</button>
-    </header>
+    </aside>
 
-    <section class="chat" id="chat">
-      <div class="welcome" id="welcome">
-        <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
-        <h1>Halo 👋</h1>
-        <p>Ada yang mau lu tanyain?</p>
-        <div class="suggestions">
-          <button>Jelasin sesuatu dengan simpel</button>
-          <button>Bantu gue bikin ide</button>
-          <button>Tulis kode buat gue</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+    <main class="app">
+      <header class="topbar">
+        <button class="menu-btn" id="menuBtn" aria-label="Buka menu">☰</button>
+        <button class="model-btn" id="modelBtn" type="button" aria-label="Pilih model">
+          <span>Ujayy</span>
+          <span class="model-caret">⌄</span>
+        </button>
+        <button class="top-action" id="clearChat" aria-label="Chat baru">＋</button>
+      </header>
+
+      <section class="chat" id="chat">
+        <div class="welcome" id="welcome">
+          <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
+          <h1>Ada yang bisa gue bantu?</h1>
+          <p>Tanya apa aja, kirim foto, atau upload file.</p>
+          <div class="suggestions">
+            <button><span>💡</span><span>Jelasin sesuatu dengan simpel</span></button>
+            <button><span>✍️</span><span>Bantu gue bikin ide</span></button>
+            <button><span>💻</span><span>Tulis atau cek kode</span></button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
 
-    <form class="composer" id="composer">
-      <div class="attachment-preview" id="attachmentPreview"></div>
-      <div class="input-wrap">
-        <button class="attach-btn" id="attachBtn" type="button" aria-label="Tambah file">＋</button>
-        <input id="fileInput" type="file" hidden multiple
-          accept="image/*,.pdf,.txt,.csv,.json,.html,.css,.xml,.js,.mjs,.ts,.md,.rtf,.mp3,.wav,.m4a,.mp4,.mov,.webm,.avi" />
-        <textarea id="input" rows="1" placeholder="Tulis pesan..." autocomplete="off"></textarea>
-        <button class="send" type="submit" aria-label="Kirim">↑</button>
-      </div>
-      <div class="hint">Foto, PDF, dokumen teks, audio & video • Maks. 5 file, 25 MB/file</div>
-    </form>
-  </main>
+      <form class="composer" id="composer">
+        <div class="attachment-preview" id="attachmentPreview"></div>
+        <div class="input-wrap">
+          <button class="attach-btn" id="attachBtn" type="button" aria-label="Tambah file">＋</button>
+          <input id="fileInput" type="file" hidden multiple
+            accept="image/*,.pdf,.txt,.csv,.json,.html,.css,.xml,.js,.mjs,.ts,.md,.rtf,.mp3,.wav,.m4a,.mp4,.mov,.webm,.avi" />
+          <textarea id="input" rows="1" placeholder="Kirim pesan ke Ujayy..." autocomplete="off"></textarea>
+          <button class="send" type="submit" aria-label="Kirim">↑</button>
+        </div>
+        <div class="hint">Ujayy bisa membuat kesalahan. Cek informasi penting.</div>
+      </form>
+    </main>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
   <script src="app.js"></script>
