@@ -39,11 +39,15 @@
     </section>
 
     <form class="composer" id="composer">
+      <div class="attachment-preview" id="attachmentPreview"></div>
       <div class="input-wrap">
+        <button class="attach-btn" id="attachBtn" type="button" aria-label="Tambah file">＋</button>
+        <input id="fileInput" type="file" hidden multiple
+          accept="image/*,.pdf,.txt,.csv,.json,.html,.css,.xml,.js,.mjs,.ts,.md,.rtf,.mp3,.wav,.m4a,.mp4,.mov,.webm,.avi" />
         <textarea id="input" rows="1" placeholder="Tulis pesan..." autocomplete="off"></textarea>
         <button class="send" type="submit" aria-label="Kirim">↑</button>
       </div>
-      <div class="hint">AI bisa melakukan kesalahan. Cek informasi penting.</div>
+      <div class="hint">Foto, PDF, dokumen teks, audio & video • Maks. 5 file, 25 MB/file</div>
     </form>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
