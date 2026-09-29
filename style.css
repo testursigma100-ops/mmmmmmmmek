@@ -6,7 +6,8 @@ button,textarea{font:inherit}
 .app{height:100dvh;max-width:760px;margin:auto;display:flex;flex-direction:column;background:radial-gradient(circle at 50% -15%,rgba(139,124,255,.12),transparent 35%),var(--bg)}
 .topbar{height:68px;flex:0 0 68px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:1px solid rgba(255,255,255,.055);backdrop-filter:blur(18px)}
 .brand{display:flex;align-items:center;gap:10px}
-.brand-mark{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(145deg,#9b8fff,#6255e9);box-shadow:0 0 25px rgba(139,124,255,.25);font-size:16px}
+.brand-mark{width:34px;height:34px;border-radius:11px;overflow:hidden;display:grid;place-items:center;background:#000;box-shadow:0 0 25px rgba(139,124,255,.18)}
+.brand-mark img{width:100%;height:100%;display:block;object-fit:cover}
 .brand-name{font-weight:700;font-size:14px;letter-spacing:.2px}
 .status{font-size:10px;color:var(--muted);margin-top:2px;display:flex;align-items:center;gap:5px}
 .status span{width:5px;height:5px;border-radius:50%;background:#63e6a7;box-shadow:0 0 8px #63e6a7}
@@ -15,7 +16,8 @@ button,textarea{font:inherit}
 .chat{flex:1;overflow-y:auto;padding:24px 16px 18px;scroll-behavior:smooth}
 .chat::-webkit-scrollbar{width:4px}.chat::-webkit-scrollbar-thumb{background:#292c36;border-radius:99px}
 .welcome{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding-bottom:40px}
-.welcome-orb{width:62px;height:62px;border-radius:21px;display:grid;place-items:center;background:linear-gradient(145deg,#9b8fff,#6255e9);font-size:27px;box-shadow:0 12px 45px rgba(111,93,255,.2);margin-bottom:18px}
+.welcome-orb{width:62px;height:62px;border-radius:21px;overflow:hidden;background:#000;display:grid;place-items:center;box-shadow:0 12px 45px rgba(111,93,255,.2);margin-bottom:18px}
+.welcome-orb img{width:100%;height:100%;display:block;object-fit:cover}
 .welcome h1{font-size:25px;margin:0 0 7px}.welcome p{color:var(--muted);font-size:14px;margin:0 0 22px}
 .suggestions{display:flex;flex-direction:column;gap:8px;width:min(100%,330px)}
 .suggestions button{background:rgba(255,255,255,.035);border:1px solid var(--line);color:#c9ccd5;padding:11px 14px;border-radius:14px;text-align:left;font-size:12px;cursor:pointer}
@@ -37,7 +39,6 @@ textarea::placeholder{color:#717583}
 @keyframes up{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.5}30%{transform:translateY(-4px);opacity:1}}
 @media(min-width:761px){.app{border-left:1px solid #161820;border-right:1px solid #161820}.chat{padding-left:24px;padding-right:24px}}
-
 
 /* Markdown di balasan AI */
 .markdown{white-space:normal}
