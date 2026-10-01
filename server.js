@@ -3,6 +3,8 @@ import dotenv from "dotenv";
 import multer from "multer";
 import path from "path";
 import { fileURLToPath } from "url";
+import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
 
 dotenv.config();
 
@@ -10,9 +12,6 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-
-import crypto from "crypto";
-import { OAuth2Client } from "google-auth-library";
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 const sessionSecret = process.env.SESSION_SECRET || "";
@@ -25,7 +24,7 @@ function signSession(payload) {
 
 function readSession(req) {
   if (!sessionSecret) return null;
-  const raw = req.headers.cookie?.match(/(?:^|;\\s*)ujayy_session=([^;]+)/)?.[1];
+  const raw = req.headers.cookie?.match(/(?:^|;\s*)ujayy_session=([^;]+)/)?.[1];
   if (!raw) return null;
   const [body, sig] = raw.split(".");
   if (!body || !sig) return null;
