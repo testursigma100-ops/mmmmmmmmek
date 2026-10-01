@@ -716,3 +716,61 @@ textarea::placeholder{color:#8b8b8b}
     animation:none!important;
   }
 }
+
+
+/* ===== PRIVACY / NO TEXT-SELECTION UI ===== */
+html,body,.app-shell,.app-shell *{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+textarea,input,[contenteditable="true"]{
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-touch-callout:default;
+}
+
+/* Keep Ujayy/profile images from being dragged or long-pressed */
+img{
+  -webkit-user-drag:none;
+  user-drag:none;
+  -webkit-touch-callout:none;
+  pointer-events:none;
+}
+.google-login-wrap{
+  display:flex;
+  justify-content:center;
+  min-height:40px;
+}
+.google-login-wrap iframe{
+  max-width:100%;
+}
+.google-login-fallback{
+  width:100%;
+  min-height:42px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  background:rgba(255,255,255,.06);
+  color:#fff;
+  font:inherit;
+}
+.google-login-fallback:disabled{
+  opacity:.55;
+}
+.profile{
+  position:relative;
+}
+.profile[hidden],.google-login-wrap[hidden]{
+  display:none!important;
+}
+.logout-btn{
+  margin-left:auto;
+  border:0;
+  background:transparent;
+  color:#999;
+  font:inherit;
+  font-size:11px;
+  cursor:pointer;
+  padding:7px 4px;
+}
+.logout-btn:hover{color:#fff}
