@@ -1046,3 +1046,26 @@ img{
   .auth-screen{padding:16px}
   .auth-card{padding:30px 21px 23px;border-radius:21px}
 }
+
+
+/* ===== REAL GOOGLE IDENTITY SERVICES BUTTON ===== */
+.google-login-real,
+.auth-google-real{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  width:100%;
+  min-height:40px;
+  overflow:hidden;
+}
+.google-login-real iframe,
+.auth-google-real iframe{
+  max-width:100%;
+}
+.auth-google-real{
+  min-height:44px;
+  margin:0 auto;
+}
+.auth-google-real > div{
+  margin:0 auto;
+}
