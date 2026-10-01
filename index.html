@@ -27,10 +27,7 @@
 
       <div class="sidebar-bottom">
         <div id="googleLoginWrap" class="google-login-wrap">
-          <button id="googleLoginButton" class="google-login-btn" type="button">
-            <span class="google-g">G</span>
-            <span>Masuk dengan Google</span>
-          </button>
+          <div id="googleLoginButton" class="google-login-real"></div>
           <div id="googleLoginStatus" class="google-login-status" hidden></div>
         </div>
         <div class="profile" id="userProfile" hidden>
@@ -89,10 +86,7 @@
       <div class="auth-brand">UJAYY</div>
       <h1>Selamat datang 👋</h1>
       <p>Masuk dulu buat mulai ngobrol sama Ujayy.</p>
-      <button id="authGoogleButton" class="auth-google-btn" type="button">
-        <span class="auth-google-icon">G</span>
-        <span>Masuk dengan Google</span>
-      </button>
+      <div id="authGoogleButton" class="auth-google-real"></div>
       <div id="authScreenStatus" class="auth-screen-status" hidden></div>
       <small>Login aman lewat Google &amp; Supabase.</small>
     </div>
@@ -101,6 +95,7 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="app.js"></script>
 </body>
 </html>
