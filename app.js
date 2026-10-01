@@ -482,9 +482,6 @@ async function initSupabaseAuth(){
       }
     );
 
-    googleLoginButton.disabled = false;
-    showAuthStatus('');
-
     const startGoogleLogin = async () => {
       if(!supabaseClient) return;
 
@@ -509,15 +506,14 @@ async function initSupabaseAuth(){
       }
     };
 
+    googleLoginButton.disabled = false;
+    showAuthStatus('');
     googleLoginButton.addEventListener('click', startGoogleLogin);
     authGoogleButton?.addEventListener('click', startGoogleLogin);
 
-    /*
-      if(!supabaseClient) return;
-
-  
-    const { data } = await supabaseClient.auth.getSession();
-    showUser(data.session?.user || null);
+    const { data, error } = await supabaseClient.auth.getSession();
+    if(error) console.error('Supabase session:', error);
+    showUser(data?.session?.user || null);
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       showUser(session?.user || null);
@@ -526,7 +522,6 @@ async function initSupabaseAuth(){
         showAuthScreenStatus('');
       }
     });
-
   }catch(err){
     console.error('Supabase Auth init:', err);
     googleLoginButton.disabled = true;
