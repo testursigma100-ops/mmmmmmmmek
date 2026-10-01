@@ -384,108 +384,136 @@ sidebarClose.addEventListener('click', closeSidebar);
 sidebarBackdrop.addEventListener('click', closeSidebar);
 renderHistory();
 
-/* ===== GOOGLE LOGIN ===== */
+/* ===== SUPABASE GOOGLE AUTH ===== */
 const googleLoginWrap = document.getElementById('googleLoginWrap');
 const googleLoginButton = document.getElementById('googleLoginButton');
-const googleLoginFallback = document.getElementById('googleLoginFallback');
+const googleLoginStatus = document.getElementById('googleLoginStatus');
 const userProfile = document.getElementById('userProfile');
 const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userEmail = document.getElementById('userEmail');
 const logoutBtn = document.getElementById('logoutBtn');
 
+let supabaseClient = null;
+
+function showAuthStatus(message = '', isError = false){
+  if(!googleLoginStatus) return;
+  googleLoginStatus.hidden = !message;
+  googleLoginStatus.textContent = message;
+  googleLoginStatus.classList.toggle('error', isError);
+}
+
 function showUser(user){
   if(!user){
     googleLoginWrap.hidden = false;
     userProfile.hidden = true;
+    userAvatar.src = 'assets/ujayy.jpg';
+    userName.textContent = 'UJAYY';
+    userEmail.textContent = 'Asisten AI';
     return;
   }
 
   googleLoginWrap.hidden = true;
   userProfile.hidden = false;
-  userName.textContent = user.name || 'Google User';
+
+  const metadata = user.user_metadata || {};
+  userName.textContent =
+    metadata.full_name ||
+    metadata.name ||
+    user.email?.split('@')[0] ||
+    'Google User';
   userEmail.textContent = user.email || '';
-  if(user.picture){
-    userAvatar.src = user.picture;
-  }
+
+  const avatar =
+    metadata.avatar_url ||
+    metadata.picture ||
+    metadata.photo_url;
+
+  if(avatar) userAvatar.src = avatar;
 }
 
-async function handleGoogleCredential(response){
+async function initSupabaseAuth(){
   try{
-    const result = await fetch('/api/auth/google', {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({credential:response.credential})
-    });
-    const data = await result.json();
-    if(!result.ok) throw new Error(data.error || 'Login Google gagal');
-    showUser(data.user);
-  }catch(err){
-    console.error(err);
-    alert(err.message);
-  }
-}
+    if(!window.supabase?.createClient){
+      throw new Error('Library Supabase gagal dimuat.');
+    }
 
-async function initGoogleLogin(){
-  try{
-    const configResponse = await fetch('/api/auth/config');
-    const config = await configResponse.json();
+    const response = await fetch('/api/auth/config');
+    const config = await response.json();
 
-    if(!config.client_id){
-      googleLoginFallback.hidden = false;
-      googleLoginFallback.textContent = 'Login Google belum dikonfigurasi';
-      googleLoginFallback.disabled = true;
+    if(!response.ok || !config.supabase_url || !config.supabase_anon_key){
+      googleLoginButton.disabled = true;
+      googleLoginButton.title = 'Supabase Auth belum dikonfigurasi';
+      showAuthStatus('Supabase belum dikonfigurasi di Railway.', true);
+      showUser(null);
       return;
     }
 
-    const start = () => {
-      if(!window.google?.accounts?.id) return false;
+    supabaseClient = window.supabase.createClient(
+      config.supabase_url,
+      config.supabase_anon_key,
+      {
+        auth:{
+          persistSession:true,
+          autoRefreshToken:true,
+          detectSessionInUrl:true
+        }
+      }
+    );
 
-      window.google.accounts.id.initialize({
-        client_id:config.client_id,
-        callback:handleGoogleCredential,
-        auto_select:false,
-        cancel_on_tap_outside:true
+    googleLoginButton.disabled = false;
+    showAuthStatus('');
+
+    googleLoginButton.addEventListener('click', async () => {
+      if(!supabaseClient) return;
+
+      googleLoginButton.disabled = true;
+      showAuthStatus('Membuka Google...');
+
+      const { error } = await supabaseClient.auth.signInWithOAuth({
+        provider:'google',
+        options:{
+          redirectTo:window.location.origin
+        }
       });
 
-      window.google.accounts.id.renderButton(googleLoginButton,{
-        type:'standard',
-        theme:'filled_black',
-        size:'large',
-        text:'signin_with',
-        shape:'rectangular',
-        width:220
-      });
+      if(error){
+        console.error('Supabase Google login:', error);
+        showAuthStatus(error.message || 'Login Google gagal.', true);
+        googleLoginButton.disabled = false;
+      }
+    });
 
-      googleLoginFallback.hidden = true;
-      return true;
-    };
+    const { data } = await supabaseClient.auth.getSession();
+    showUser(data.session?.user || null);
 
-    if(!start()){
-      const timer = setInterval(() => {
-        if(start()) clearInterval(timer);
-      },300);
-      setTimeout(() => clearInterval(timer),10000);
-    }
+    supabaseClient.auth.onAuthStateChange((_event, session) => {
+      showUser(session?.user || null);
+      if(session?.user) showAuthStatus('');
+    });
+
   }catch(err){
-    console.error('Google login init:',err);
-  }
-}
-
-async function loadLoggedInUser(){
-  try{
-    const response = await fetch('/api/auth/me');
-    const data = await response.json();
-    showUser(data.user);
-  }catch{
+    console.error('Supabase Auth init:', err);
+    googleLoginButton.disabled = true;
+    showAuthStatus(err.message || 'Supabase Auth gagal dimuat.', true);
     showUser(null);
   }
 }
 
 logoutBtn?.addEventListener('click', async () => {
-  await fetch('/api/auth/logout',{method:'POST'});
-  showUser(null);
+  if(!supabaseClient) return;
+
+  logoutBtn.disabled = true;
+  const { error } = await supabaseClient.auth.signOut();
+
+  if(error){
+    console.error('Supabase logout:', error);
+    showAuthStatus(error.message || 'Logout gagal.', true);
+  }else{
+    showUser(null);
+  }
+
+  logoutBtn.disabled = false;
 });
 
-initGoogleLogin();
-loadLoggedInUser();
+initSupabaseAuth();
