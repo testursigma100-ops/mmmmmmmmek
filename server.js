@@ -12,6 +12,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+app.use(express.json({ limit: "2mb" }));
+app.use(express.static(__dirname));
 
 const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 const sessionSecret = process.env.SESSION_SECRET || "";
@@ -111,9 +113,6 @@ const upload = multer({
     fileSize: 25 * 1024 * 1024
   }
 });
-
-app.use(express.json({ limit: "2mb" }));
-app.use(express.static(__dirname));
 
 const SYSTEM_INSTRUCTION = `Kamu adalah Ujayy, asisten AI yang cerdas, jujur, dan praktis.
 
