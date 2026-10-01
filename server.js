@@ -10,6 +10,101 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
+
+import crypto from "crypto";
+import { OAuth2Client } from "google-auth-library";
+
+const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
+const sessionSecret = process.env.SESSION_SECRET || "";
+
+function signSession(payload) {
+  const body = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const sig = crypto.createHmac("sha256", sessionSecret).update(body).digest("base64url");
+  return body + "." + sig;
+}
+
+function readSession(req) {
+  if (!sessionSecret) return null;
+  const raw = req.headers.cookie?.match(/(?:^|;\\s*)ujayy_session=([^;]+)/)?.[1];
+  if (!raw) return null;
+  const [body, sig] = raw.split(".");
+  if (!body || !sig) return null;
+  const expected = crypto.createHmac("sha256", sessionSecret).update(body).digest("base64url");
+  if (sig.length !== expected.length || !crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected))) return null;
+  try {
+    const payload = JSON.parse(Buffer.from(body, "base64url").toString("utf8"));
+    if (!payload.exp || payload.exp < Date.now()) return null;
+    return payload;
+  } catch {
+    return null;
+  }
+}
+
+app.get("/api/auth/config", (req, res) => {
+  res.json({ client_id: googleClientId || null });
+});
+
+app.get("/api/auth/me", (req, res) => {
+  const session = readSession(req);
+  res.json({ user: session?.user || null });
+});
+
+app.post("/api/auth/google", async (req, res) => {
+  try {
+    if (!googleClientId || !sessionSecret) {
+      return res.status(503).json({
+        error: "Login Google belum dikonfigurasi. Tambahkan GOOGLE_CLIENT_ID dan SESSION_SECRET di Railway."
+      });
+    }
+
+    const credential = String(req.body?.credential || "");
+    if (!credential) {
+      return res.status(400).json({ error: "Credential Google tidak ditemukan." });
+    }
+
+    const client = new OAuth2Client(googleClientId);
+    const ticket = await client.verifyIdToken({
+      idToken: credential,
+      audience: googleClientId
+    });
+    const payload = ticket.getPayload();
+
+    if (!payload?.sub || !payload.email) {
+      return res.status(401).json({ error: "Akun Google tidak valid." });
+    }
+
+    const user = {
+      id: payload.sub,
+      name: payload.name || payload.email.split("@")[0],
+      email: payload.email,
+      picture: payload.picture || null
+    };
+
+    const token = signSession({
+      user,
+      exp: Date.now() + 1000 * 60 * 60 * 24 * 30
+    });
+
+    res.setHeader(
+      "Set-Cookie",
+      `ujayy_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=2592000`
+    );
+
+    res.json({ user });
+  } catch (err) {
+    console.error("Google auth error:", err);
+    res.status(401).json({ error: "Login Google gagal atau token sudah tidak valid." });
+  }
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  res.setHeader(
+    "Set-Cookie",
+    "ujayy_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0"
+  );
+  res.json({ ok: true });
+});
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {
