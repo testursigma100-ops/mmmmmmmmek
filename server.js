@@ -17,11 +17,13 @@ const supabaseAnonKey =
   process.env.SUPABASE_ANON_KEY ||
   process.env.SUPABASE_PUBLISHABLE_KEY ||
   "";
+const googleClientId = process.env.GOOGLE_CLIENT_ID || "";
 
 app.get("/api/auth/config", (req, res) => {
   res.json({
     supabase_url: supabaseUrl || null,
-    supabase_anon_key: supabaseAnonKey || null
+    supabase_anon_key: supabaseAnonKey || null,
+    google_client_id: googleClientId || null
   });
 });
 
