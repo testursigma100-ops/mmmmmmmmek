@@ -384,7 +384,7 @@ sidebarClose.addEventListener('click', closeSidebar);
 sidebarBackdrop.addEventListener('click', closeSidebar);
 renderHistory();
 
-/* ===== SUPABASE GOOGLE AUTH ===== */
+/* ===== GOOGLE IDENTITY SERVICES + SUPABASE AUTH ===== */
 const googleLoginWrap = document.getElementById('googleLoginWrap');
 const googleLoginButton = document.getElementById('googleLoginButton');
 const googleLoginStatus = document.getElementById('googleLoginStatus');
@@ -398,6 +398,7 @@ const authGoogleButton = document.getElementById('authGoogleButton');
 const authScreenStatus = document.getElementById('authScreenStatus');
 
 let supabaseClient = null;
+let googleClientId = '';
 
 function showAuthScreenStatus(message = '', isError = false){
   if(!authScreenStatus) return;
@@ -422,7 +423,6 @@ function showAuthStatus(message = '', isError = false){
 function showUser(user){
   if(!user){
     setAuthScreenVisible(true);
-    if(authGoogleButton) authGoogleButton.disabled = false;
     googleLoginWrap.hidden = false;
     userProfile.hidden = true;
     userAvatar.src = 'assets/ujayy.jpg';
@@ -432,7 +432,6 @@ function showUser(user){
   }
 
   setAuthScreenVisible(false);
-  if(authGoogleButton) authGoogleButton.disabled = false;
   googleLoginWrap.hidden = true;
   userProfile.hidden = false;
 
@@ -452,6 +451,89 @@ function showUser(user){
   if(avatar) userAvatar.src = avatar;
 }
 
+function waitForGoogleIdentity(timeout = 10000){
+  return new Promise((resolve, reject) => {
+    const started = Date.now();
+
+    const check = () => {
+      if(window.google?.accounts?.id){
+        resolve();
+        return;
+      }
+
+      if(Date.now() - started >= timeout){
+        reject(new Error('Google Identity Services gagal dimuat.'));
+        return;
+      }
+
+      setTimeout(check, 100);
+    };
+
+    check();
+  });
+}
+
+function renderGoogleButtons(){
+  if(!googleClientId) throw new Error('GOOGLE_CLIENT_ID belum diatur di Railway.');
+
+  google.accounts.id.initialize({
+    client_id: googleClientId,
+    callback: handleGoogleCredential,
+    ux_mode: 'popup',
+    auto_select: false,
+    color_scheme: 'dark'
+  });
+
+  const buttonOptions = {
+    type: 'standard',
+    theme: 'filled_black',
+    size: 'large',
+    text: 'signin_with',
+    shape: 'rectangular',
+    logo_alignment: 'left',
+    width: 360,
+    locale: 'id'
+  };
+
+  if(authGoogleButton){
+    authGoogleButton.innerHTML = '';
+    google.accounts.id.renderButton(authGoogleButton, buttonOptions);
+  }
+
+  if(googleLoginButton){
+    googleLoginButton.innerHTML = '';
+    google.accounts.id.renderButton(googleLoginButton, {
+      ...buttonOptions,
+      width: 260,
+      size: 'medium'
+    });
+  }
+}
+
+async function handleGoogleCredential(response){
+  if(!supabaseClient || !response?.credential) return;
+
+  showAuthScreenStatus('Memverifikasi akun Google...');
+  showAuthStatus('Memverifikasi akun Google...');
+
+  try{
+    const { data, error } = await supabaseClient.auth.signInWithIdToken({
+      provider: 'google',
+      token: response.credential
+    });
+
+    if(error) throw error;
+
+    showUser(data?.user || null);
+    showAuthScreenStatus('');
+    showAuthStatus('');
+  }catch(error){
+    console.error('Google ID token login:', error);
+    showAuthScreenStatus(error.message || 'Login Google gagal.', true);
+    showAuthStatus(error.message || 'Login Google gagal.', true);
+  }
+}
+
 async function initSupabaseAuth(){
   try{
     if(!window.supabase?.createClient){
@@ -462,12 +544,14 @@ async function initSupabaseAuth(){
     const config = await response.json();
 
     if(!response.ok || !config.supabase_url || !config.supabase_anon_key){
-      googleLoginButton.disabled = true;
-      googleLoginButton.title = 'Supabase Auth belum dikonfigurasi';
-      showAuthScreenStatus('Login Google belum dikonfigurasi di server.', true);
-      showAuthStatus('Supabase belum dikonfigurasi di Railway.', true);
+      showAuthScreenStatus('Supabase belum dikonfigurasi di server.', true);
       showUser(null);
       return;
+    }
+
+    googleClientId = config.google_client_id || '';
+    if(!googleClientId){
+      throw new Error('GOOGLE_CLIENT_ID belum diatur di Railway.');
     }
 
     supabaseClient = window.supabase.createClient(
@@ -477,39 +561,10 @@ async function initSupabaseAuth(){
         auth:{
           persistSession:true,
           autoRefreshToken:true,
-          detectSessionInUrl:true
+          detectSessionInUrl:false
         }
       }
     );
-
-    const startGoogleLogin = async () => {
-      if(!supabaseClient) return;
-
-      googleLoginButton.disabled = true;
-      if(authGoogleButton) authGoogleButton.disabled = true;
-      showAuthScreenStatus('Membuka Google...');
-      showAuthStatus('Membuka Google...');
-
-      const { error } = await supabaseClient.auth.signInWithOAuth({
-        provider:'google',
-        options:{
-          redirectTo:window.location.origin
-        }
-      });
-
-      if(error){
-        console.error('Supabase Google login:', error);
-        showAuthScreenStatus(error.message || 'Login Google gagal.', true);
-        showAuthStatus(error.message || 'Login Google gagal.', true);
-        googleLoginButton.disabled = false;
-        if(authGoogleButton) authGoogleButton.disabled = false;
-      }
-    };
-
-    googleLoginButton.disabled = false;
-    showAuthStatus('');
-    googleLoginButton.addEventListener('click', startGoogleLogin);
-    authGoogleButton?.addEventListener('click', startGoogleLogin);
 
     const { data, error } = await supabaseClient.auth.getSession();
     if(error) console.error('Supabase session:', error);
@@ -522,12 +577,14 @@ async function initSupabaseAuth(){
         showAuthScreenStatus('');
       }
     });
+
+    await waitForGoogleIdentity();
+    renderGoogleButtons();
+    showAuthStatus('');
   }catch(err){
-    console.error('Supabase Auth init:', err);
-    googleLoginButton.disabled = true;
-    if(authGoogleButton) authGoogleButton.disabled = false;
-    showAuthScreenStatus(err.message || 'Supabase Auth gagal dimuat.', true);
-    showAuthStatus(err.message || 'Supabase Auth gagal dimuat.', true);
+    console.error('Google/Supabase Auth init:', err);
+    showAuthScreenStatus(err.message || 'Login Google gagal dimuat.', true);
+    showAuthStatus(err.message || 'Login Google gagal.', true);
     showUser(null);
   }
 }
