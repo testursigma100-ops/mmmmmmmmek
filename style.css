@@ -450,3 +450,126 @@ textarea::placeholder{color:#8b8b8b}
   .suggestions button,
   .suggestions button::before{animation:none!important}
 }
+
+
+/* ===== VISIBLE ALWAYS-ON SHINY BUTTON ===== */
+.suggestions button{
+  --shine-angle:0deg;
+  --shine-x:-140%;
+  isolation:isolate;
+  position:relative;
+  overflow:hidden;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(135deg,rgba(42,42,42,.94),rgba(31,31,31,.88)) padding-box,
+    conic-gradient(
+      from var(--shine-angle),
+      rgba(255,255,255,.08),
+      rgba(255,255,255,.08) 72%,
+      #fff 78%,
+      rgba(255,255,255,.12) 82%,
+      rgba(255,255,255,.08)
+    ) border-box;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.1),
+    inset 0 -1px 0 rgba(0,0,0,.25),
+    0 8px 24px rgba(0,0,0,.12);
+  animation:ujayyShineAngle 3.2s linear infinite;
+}
+
+/* Moving light streak that is clearly visible on mobile too */
+.suggestions button::before{
+  content:"";
+  position:absolute;
+  inset:-100% -35%;
+  z-index:0;
+  pointer-events:none;
+  background:linear-gradient(
+    105deg,
+    transparent 43%,
+    rgba(255,255,255,.02) 46%,
+    rgba(255,255,255,.28) 49%,
+    rgba(255,255,255,.7) 50%,
+    rgba(255,255,255,.18) 51%,
+    rgba(255,255,255,.02) 54%,
+    transparent 57%
+  );
+  transform:translateX(var(--shine-x)) rotate(8deg);
+  animation:ujayyShineSweep 2.8s cubic-bezier(.55,.05,.45,.95) infinite;
+}
+
+/* Soft inner glow */
+.suggestions button::after{
+  content:"";
+  position:absolute;
+  inset:1px;
+  z-index:0;
+  pointer-events:none;
+  border-radius:inherit;
+  background:
+    radial-gradient(
+      130px 70px at var(--glow-x,15%) 0%,
+      rgba(255,255,255,.13),
+      transparent 72%
+    ),
+    linear-gradient(135deg,rgba(255,255,255,.035),transparent 55%);
+  animation:ujayyGlowMove 3.2s ease-in-out infinite alternate;
+}
+
+.suggestions button{
+  color:#e9e9e9;
+}
+.suggestions button:hover{
+  transform:translateY(-2px) scale(1.01);
+  color:#fff;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.16),
+    0 12px 32px rgba(0,0,0,.22),
+    0 0 24px rgba(255,255,255,.055);
+}
+.suggestions button:active{
+  transform:scale(.985);
+}
+
+/* Keep text above all effects */
+.suggestions button > *{
+  position:relative;
+  z-index:2;
+}
+
+@keyframes ujayyShineAngle{
+  from{--shine-angle:0deg}
+  to{--shine-angle:360deg}
+}
+@keyframes ujayyShineSweep{
+  0%{--shine-x:-140%}
+  45%,100%{--shine-x:140%}
+}
+@keyframes ujayyGlowMove{
+  from{--glow-x:10%}
+  to{--glow-x:90%}
+}
+
+@property --shine-angle{
+  syntax:"<angle>";
+  initial-value:0deg;
+  inherits:false;
+}
+@property --shine-x{
+  syntax:"<percentage>";
+  initial-value:-140%;
+  inherits:false;
+}
+@property --glow-x{
+  syntax:"<percentage>";
+  initial-value:10%;
+  inherits:false;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .suggestions button,
+  .suggestions button::before,
+  .suggestions button::after{
+    animation:none!important;
+  }
+}
