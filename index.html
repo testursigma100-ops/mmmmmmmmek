@@ -27,8 +27,11 @@
 
       <div class="sidebar-bottom">
         <div id="googleLoginWrap" class="google-login-wrap">
-          <div id="googleLoginButton"></div>
-          <button id="googleLoginFallback" class="google-login-fallback" type="button">Masuk dengan Google</button>
+          <button id="googleLoginButton" class="google-login-btn" type="button">
+            <span class="google-g">G</span>
+            <span>Masuk dengan Google</span>
+          </button>
+          <div id="googleLoginStatus" class="google-login-status" hidden></div>
         </div>
         <div class="profile" id="userProfile" hidden>
           <img id="userAvatar" src="assets/ujayy.jpg" alt="Profil" draggable="false">
@@ -82,7 +85,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app.js"></script>
 </body>
 </html>
