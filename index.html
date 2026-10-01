@@ -26,13 +26,17 @@
       <div class="history" id="history"></div>
 
       <div class="sidebar-bottom">
-        <div class="profile">
-          <img src="assets/ujayy.jpg" alt="Ujayy">
+        <div id="googleLoginWrap" class="google-login-wrap">
+          <div id="googleLoginButton"></div>
+          <button id="googleLoginFallback" class="google-login-fallback" type="button">Masuk dengan Google</button>
+        </div>
+        <div class="profile" id="userProfile" hidden>
+          <img id="userAvatar" src="assets/ujayy.jpg" alt="Profil" draggable="false">
           <div class="profile-text">
-            <strong>UJAYY</strong>
-            <span>Asisten AI</span>
+            <strong id="userName">UJAYY</strong>
+            <span id="userEmail">Asisten AI</span>
           </div>
-          <span class="profile-dot"></span>
+          <button id="logoutBtn" class="logout-btn" type="button">Keluar</button>
         </div>
       </div>
     </aside>
@@ -78,6 +82,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.6/dist/purify.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="app.js"></script>
 </body>
 </html>
