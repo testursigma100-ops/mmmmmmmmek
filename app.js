@@ -393,8 +393,24 @@ const userAvatar = document.getElementById('userAvatar');
 const userName = document.getElementById('userName');
 const userEmail = document.getElementById('userEmail');
 const logoutBtn = document.getElementById('logoutBtn');
+const authScreen = document.getElementById('authScreen');
+const authGoogleButton = document.getElementById('authGoogleButton');
+const authScreenStatus = document.getElementById('authScreenStatus');
 
 let supabaseClient = null;
+
+function showAuthScreenStatus(message = '', isError = false){
+  if(!authScreenStatus) return;
+  authScreenStatus.hidden = !message;
+  authScreenStatus.textContent = message;
+  authScreenStatus.classList.toggle('error', isError);
+}
+
+function setAuthScreenVisible(visible){
+  if(!authScreen) return;
+  authScreen.hidden = !visible;
+  document.body.classList.toggle('auth-locked', visible);
+}
 
 function showAuthStatus(message = '', isError = false){
   if(!googleLoginStatus) return;
@@ -405,6 +421,8 @@ function showAuthStatus(message = '', isError = false){
 
 function showUser(user){
   if(!user){
+    setAuthScreenVisible(true);
+    if(authGoogleButton) authGoogleButton.disabled = false;
     googleLoginWrap.hidden = false;
     userProfile.hidden = true;
     userAvatar.src = 'assets/ujayy.jpg';
@@ -413,6 +431,8 @@ function showUser(user){
     return;
   }
 
+  setAuthScreenVisible(false);
+  if(authGoogleButton) authGoogleButton.disabled = false;
   googleLoginWrap.hidden = true;
   userProfile.hidden = false;
 
@@ -444,6 +464,7 @@ async function initSupabaseAuth(){
     if(!response.ok || !config.supabase_url || !config.supabase_anon_key){
       googleLoginButton.disabled = true;
       googleLoginButton.title = 'Supabase Auth belum dikonfigurasi';
+      showAuthScreenStatus('Login Google belum dikonfigurasi di server.', true);
       showAuthStatus('Supabase belum dikonfigurasi di Railway.', true);
       showUser(null);
       return;
@@ -464,10 +485,12 @@ async function initSupabaseAuth(){
     googleLoginButton.disabled = false;
     showAuthStatus('');
 
-    googleLoginButton.addEventListener('click', async () => {
+    const startGoogleLogin = async () => {
       if(!supabaseClient) return;
 
       googleLoginButton.disabled = true;
+      if(authGoogleButton) authGoogleButton.disabled = true;
+      showAuthScreenStatus('Membuka Google...');
       showAuthStatus('Membuka Google...');
 
       const { error } = await supabaseClient.auth.signInWithOAuth({
@@ -479,22 +502,36 @@ async function initSupabaseAuth(){
 
       if(error){
         console.error('Supabase Google login:', error);
+        showAuthScreenStatus(error.message || 'Login Google gagal.', true);
         showAuthStatus(error.message || 'Login Google gagal.', true);
         googleLoginButton.disabled = false;
+        if(authGoogleButton) authGoogleButton.disabled = false;
       }
-    });
+    };
 
+    googleLoginButton.addEventListener('click', startGoogleLogin);
+    authGoogleButton?.addEventListener('click', startGoogleLogin);
+
+    /*
+      if(!supabaseClient) return;
+
+  
     const { data } = await supabaseClient.auth.getSession();
     showUser(data.session?.user || null);
 
     supabaseClient.auth.onAuthStateChange((_event, session) => {
       showUser(session?.user || null);
-      if(session?.user) showAuthStatus('');
+      if(session?.user){
+        showAuthStatus('');
+        showAuthScreenStatus('');
+      }
     });
 
   }catch(err){
     console.error('Supabase Auth init:', err);
     googleLoginButton.disabled = true;
+    if(authGoogleButton) authGoogleButton.disabled = false;
+    showAuthScreenStatus(err.message || 'Supabase Auth gagal dimuat.', true);
     showAuthStatus(err.message || 'Supabase Auth gagal dimuat.', true);
     showUser(null);
   }
