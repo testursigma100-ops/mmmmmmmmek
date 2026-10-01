@@ -774,3 +774,148 @@ img{
   padding:7px 4px;
 }
 .logout-btn:hover{color:#fff}
+
+
+/* ===== FINAL MOBILE/UI POLISH ===== */
+.google-login-wrap{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  min-height:42px;
+  width:100%;
+}
+#googleLoginButton{
+  width:100%;
+  display:flex;
+  justify-content:center;
+}
+.google-login-fallback{
+  width:100%;
+  min-height:40px;
+  padding:0 12px;
+  border:1px solid rgba(255,255,255,.13);
+  border-radius:9px;
+  background:#232323;
+  color:#bdbdbd;
+  font-size:11px;
+  font-weight:500;
+  cursor:default;
+}
+.google-login-fallback:disabled{
+  opacity:1;
+}
+.profile{
+  min-width:0;
+}
+.profile-text{
+  flex:1;
+  overflow:hidden;
+}
+.profile-text strong,
+.profile-text span{
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+.logout-btn{
+  flex:0 0 auto;
+  min-height:30px;
+  padding:0 9px;
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:8px;
+  background:#242424;
+  color:#aaa;
+  font-size:10px;
+  cursor:pointer;
+}
+.logout-btn:hover{
+  background:#303030;
+  color:#fff;
+  border-color:rgba(255,255,255,.18);
+}
+.logout-btn:active{
+  transform:scale(.96);
+}
+
+/* Stop normal Android text-selection/search UI outside editable fields. */
+html,body,.app-shell,.app-shell *{
+  -webkit-user-select:none;
+  user-select:none;
+  -webkit-touch-callout:none;
+}
+textarea,input,[contenteditable="true"]{
+  -webkit-user-select:text;
+  user-select:text;
+  -webkit-touch-callout:default;
+}
+img{
+  -webkit-user-drag:none;
+  user-drag:none;
+  -webkit-touch-callout:none;
+}
+
+/* Make the CTA shine visible but lightweight on phones. */
+.suggestions button{
+  --shine-angle:0deg;
+  min-height:68px;
+  border:1px solid rgba(255,255,255,.14);
+  background:
+    linear-gradient(135deg,rgba(42,42,42,.96),rgba(31,31,31,.94)) padding-box,
+    conic-gradient(
+      from var(--shine-angle),
+      rgba(255,255,255,.08) 0deg,
+      rgba(255,255,255,.08) 250deg,
+      rgba(255,255,255,.95) 278deg,
+      rgba(255,255,255,.12) 296deg,
+      rgba(255,255,255,.08) 360deg
+    ) border-box;
+  animation:ujayyFinalShine 3.6s linear infinite;
+}
+.suggestions button::before{
+  inset:-40% -80%;
+  background:linear-gradient(
+    105deg,
+    transparent 44%,
+    rgba(255,255,255,.02) 47%,
+    rgba(255,255,255,.38) 50%,
+    rgba(255,255,255,.05) 53%,
+    transparent 56%
+  );
+  animation:ujayyFinalSweep 3.8s ease-in-out infinite;
+}
+.suggestions button::after{
+  animation:none;
+  background:linear-gradient(135deg,rgba(255,255,255,.035),transparent 55%);
+}
+.suggestions button:hover{
+  transform:translateY(-2px) scale(1.01);
+}
+@keyframes ujayyFinalShine{
+  to{--shine-angle:360deg}
+}
+@keyframes ujayyFinalSweep{
+  0%,18%{transform:translateX(-70%) rotate(8deg)}
+  52%,100%{transform:translateX(70%) rotate(8deg)}
+}
+@property --shine-angle{
+  syntax:"<angle>";
+  initial-value:0deg;
+  inherits:false;
+}
+@media(max-width:760px){
+  .suggestions button{
+    min-height:64px;
+    border-radius:14px;
+    padding:0 18px;
+  }
+  .sidebar-bottom{
+    padding-left:4px;
+    padding-right:4px;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  .suggestions button,
+  .suggestions button::before{
+    animation:none!important;
+  }
+}
