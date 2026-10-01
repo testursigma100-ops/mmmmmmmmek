@@ -145,13 +145,13 @@ function resetChat(saveBeforeReset = true){
 
   chat.innerHTML = `
     <div class="welcome" id="welcome">
-      <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy"></div>
-      <h1>Halo</h1>
-      <p>Ada yang mau lu tanyain?</p>
+      <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy" draggable="false"></div>
+      <h1>Ada yang bisa gue bantu?</h1>
+      <p>Tanya apa aja, kirim foto, atau upload file.</p>
       <div class="suggestions">
-        <button>Jelasin sesuatu dengan simpel</button>
-        <button>Bantu gue bikin ide</button>
-        <button>Tulis kode buat gue</button>
+        <button><span>Jelasin sesuatu dengan simpel</span></button>
+        <button><span>Bantu gue bikin ide</span></button>
+        <button><span>Tulis kode buat gue</span></button>
       </div>
     </div>`;
 
