@@ -573,3 +573,146 @@ textarea::placeholder{color:#8b8b8b}
     animation:none!important;
   }
 }
+
+
+/* ===== SHINY CTA — adapted for Ujayy vanilla frontend ===== */
+.suggestions button{
+  --shiny-bg:#242424;
+  --shiny-subtle:#151515;
+  --shiny-fg:#fff;
+  --shiny-highlight:#8b8bff;
+  --shiny-highlight-subtle:#c5c5ff;
+  --gradient-angle:0deg;
+  --gradient-percent:5%;
+  --gradient-shine:#fff;
+  isolation:isolate;
+  position:relative;
+  overflow:hidden;
+  padding:0 24px;
+  border:1px solid transparent;
+  border-radius:16px;
+  color:var(--shiny-fg);
+  background:
+    linear-gradient(var(--shiny-bg),var(--shiny-bg)) padding-box,
+    conic-gradient(
+      from var(--gradient-angle),
+      transparent,
+      var(--shiny-highlight) var(--gradient-percent),
+      var(--gradient-shine) calc(var(--gradient-percent)*2),
+      var(--shiny-highlight) calc(var(--gradient-percent)*3),
+      transparent calc(var(--gradient-percent)*4)
+    ) border-box;
+  box-shadow:
+    inset 0 0 0 1px var(--shiny-subtle),
+    0 8px 28px rgba(0,0,0,.12);
+  animation:ujayy-gradient-angle 3s linear infinite;
+}
+
+.suggestions button::before,
+.suggestions button::after,
+.suggestions button span::before{
+  content:"";
+  pointer-events:none;
+  position:absolute;
+  left:50%;
+  top:50%;
+  translate:-50% -50%;
+}
+
+/* dots */
+.suggestions button::before{
+  --size:calc(100% - 6px);
+  --position:2px;
+  width:var(--size);
+  height:var(--size);
+  background:radial-gradient(
+    circle at var(--position) var(--position),
+    rgba(255,255,255,.9) calc(var(--position)/4),
+    transparent 0
+  ) padding-box;
+  background-size:4px 4px;
+  background-repeat:space;
+  mask-image:conic-gradient(
+    from calc(var(--gradient-angle) + 45deg),
+    black,
+    transparent 10% 90%,
+    black
+  );
+  border-radius:inherit;
+  opacity:.32;
+  z-index:-1;
+}
+
+/* moving inner shine */
+.suggestions button::after{
+  width:130%;
+  aspect-ratio:1;
+  background:linear-gradient(
+    -50deg,
+    transparent 38%,
+    rgba(139,139,255,.08) 44%,
+    rgba(255,255,255,.75) 50%,
+    rgba(139,139,255,.08) 56%,
+    transparent 62%
+  );
+  mask-image:radial-gradient(circle at bottom,transparent 38%,black 68%);
+  opacity:.65;
+  animation:ujayy-shimmer 2.2s linear infinite;
+  z-index:-1;
+}
+
+.suggestions button span{
+  position:relative;
+  z-index:2;
+  display:block;
+}
+
+.suggestions button span::before{
+  width:calc(100% + 1rem);
+  height:calc(100% + 1rem);
+  box-shadow:inset 0 -1ex 2rem 4px var(--shiny-highlight);
+  opacity:.08;
+  border-radius:inherit;
+  animation:ujayy-breathe 2.8s ease-in-out infinite;
+  z-index:-1;
+}
+
+.suggestions button:hover{
+  --gradient-percent:20%;
+  --shiny-highlight:#aaaaff;
+  transform:translateY(-2px);
+  box-shadow:
+    inset 0 0 0 1px #242424,
+    0 12px 34px rgba(0,0,0,.24),
+    0 0 24px rgba(139,139,255,.10);
+}
+
+.suggestions button:active{
+  transform:translateY(1px) scale(.985);
+}
+
+@keyframes ujayy-gradient-angle{
+  to{--gradient-angle:360deg}
+}
+@keyframes ujayy-shimmer{
+  to{rotate:360deg}
+}
+@keyframes ujayy-breathe{
+  0%,100%{scale:1;opacity:.06}
+  50%{scale:1.12;opacity:.16}
+}
+
+@property --gradient-angle{
+  syntax:"<angle>";
+  initial-value:0deg;
+  inherits:false;
+}
+
+@media(prefers-reduced-motion:reduce){
+  .suggestions button,
+  .suggestions button::before,
+  .suggestions button::after,
+  .suggestions button span::before{
+    animation:none!important;
+  }
+}
