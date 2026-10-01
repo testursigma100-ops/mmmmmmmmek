@@ -383,3 +383,109 @@ menuBtn.addEventListener('click', openSidebar);
 sidebarClose.addEventListener('click', closeSidebar);
 sidebarBackdrop.addEventListener('click', closeSidebar);
 renderHistory();
+
+/* ===== GOOGLE LOGIN ===== */
+const googleLoginWrap = document.getElementById('googleLoginWrap');
+const googleLoginButton = document.getElementById('googleLoginButton');
+const googleLoginFallback = document.getElementById('googleLoginFallback');
+const userProfile = document.getElementById('userProfile');
+const userAvatar = document.getElementById('userAvatar');
+const userName = document.getElementById('userName');
+const userEmail = document.getElementById('userEmail');
+const logoutBtn = document.getElementById('logoutBtn');
+
+function showUser(user){
+  if(!user){
+    googleLoginWrap.hidden = false;
+    userProfile.hidden = true;
+    return;
+  }
+
+  googleLoginWrap.hidden = true;
+  userProfile.hidden = false;
+  userName.textContent = user.name || 'Google User';
+  userEmail.textContent = user.email || '';
+  if(user.picture){
+    userAvatar.src = user.picture;
+  }
+}
+
+async function handleGoogleCredential(response){
+  try{
+    const result = await fetch('/api/auth/google', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({credential:response.credential})
+    });
+    const data = await result.json();
+    if(!result.ok) throw new Error(data.error || 'Login Google gagal');
+    showUser(data.user);
+  }catch(err){
+    console.error(err);
+    alert(err.message);
+  }
+}
+
+async function initGoogleLogin(){
+  try{
+    const configResponse = await fetch('/api/auth/config');
+    const config = await configResponse.json();
+
+    if(!config.client_id){
+      googleLoginFallback.hidden = false;
+      googleLoginFallback.textContent = 'Login Google belum dikonfigurasi';
+      googleLoginFallback.disabled = true;
+      return;
+    }
+
+    const start = () => {
+      if(!window.google?.accounts?.id) return false;
+
+      window.google.accounts.id.initialize({
+        client_id:config.client_id,
+        callback:handleGoogleCredential,
+        auto_select:false,
+        cancel_on_tap_outside:true
+      });
+
+      window.google.accounts.id.renderButton(googleLoginButton,{
+        type:'standard',
+        theme:'filled_black',
+        size:'large',
+        text:'signin_with',
+        shape:'rectangular',
+        width:220
+      });
+
+      googleLoginFallback.hidden = true;
+      return true;
+    };
+
+    if(!start()){
+      const timer = setInterval(() => {
+        if(start()) clearInterval(timer);
+      },300);
+      setTimeout(() => clearInterval(timer),10000);
+    }
+  }catch(err){
+    console.error('Google login init:',err);
+  }
+}
+
+async function loadLoggedInUser(){
+  try{
+    const response = await fetch('/api/auth/me');
+    const data = await response.json();
+    showUser(data.user);
+  }catch{
+    showUser(null);
+  }
+}
+
+logoutBtn?.addEventListener('click', async () => {
+  await fetch('/api/auth/logout',{method:'POST'});
+  showUser(null);
+});
+
+initGoogleLogin();
+loadLoggedInUser();
