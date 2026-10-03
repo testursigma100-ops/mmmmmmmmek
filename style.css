@@ -921,6 +921,16 @@ img{
 }
 
 
+/* Remove Android/iOS blue tap highlight on buttons and clickable UI */
+html,body,button,.suggestions button,.history-item,.new-chat-btn,.model-btn,.menu-btn,.top-action,.attach-btn,.send{
+  -webkit-tap-highlight-color:transparent;
+  tap-highlight-color:transparent;
+}
+button:focus,
+button:focus-visible{
+  outline:none;
+}
+
 /* ===== SUPABASE GOOGLE LOGIN ===== */
 .google-login-wrap{
   display:block;
