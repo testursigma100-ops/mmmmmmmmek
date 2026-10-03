@@ -10,6 +10,11 @@ const sidebarClose = document.getElementById('sidebarClose');
 const sidebarBackdrop = document.getElementById('sidebarBackdrop');
 const historyEl = document.getElementById('history');
 const historyKey = 'ujayy_chat_history';
+let authUserId = null;
+
+function getHistoryStorageKey(){
+  return authUserId ? `${historyKey}_${authUserId}` : null;
+}
 const attachBtn = document.getElementById('attachBtn');
 const fileInput = document.getElementById('fileInput');
 const attachmentPreview = document.getElementById('attachmentPreview');
@@ -31,7 +36,9 @@ function openSidebar(){
 }
 function getHistory(){
   try {
-    const parsed = JSON.parse(localStorage.getItem(historyKey) || '[]');
+    const storageKey = getHistoryStorageKey();
+    if(!storageKey) return [];
+    const parsed = JSON.parse(localStorage.getItem(storageKey) || '[]');
     return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
@@ -51,7 +58,9 @@ function saveCurrentChat(){
     messages: messages.slice(-100)
   };
 
-  localStorage.setItem(historyKey, JSON.stringify(items.slice(0,30)));
+  const storageKey = getHistoryStorageKey();
+  if(!storageKey) return;
+  localStorage.setItem(storageKey, JSON.stringify(items.slice(0,30)));
   renderHistory();
 }
 
@@ -422,6 +431,8 @@ function showAuthStatus(message = '', isError = false){
 
 function showUser(user){
   if(!user){
+    authUserId = null;
+    resetChat(false);
     setAuthScreenVisible(true);
     googleLoginWrap.hidden = false;
     userProfile.hidden = true;
@@ -429,6 +440,30 @@ function showUser(user){
     userName.textContent = 'UJAYY';
     userEmail.textContent = 'Asisten AI';
     return;
+  }
+
+  const changedUser = authUserId !== user.id;
+  authUserId = user.id;
+
+  if(changedUser){
+    messages = [];
+    selectedFiles = [];
+    interactionId = null;
+    currentChatId = null;
+    renderSelectedFiles();
+    chat.innerHTML = `
+      <div class="welcome" id="welcome">
+        <div class="welcome-orb"><img src="assets/ujayy.jpg" alt="Ujayy" draggable="false"></div>
+        <h1>Ada yang bisa gue bantu?</h1>
+        <p>Tanya apa aja, kirim foto, atau upload file.</p>
+        <div class="suggestions">
+          <button><span>Jelasin sesuatu dengan simpel</span></button>
+          <button><span>Bantu gue bikin ide</span></button>
+          <button><span>Tulis kode buat gue</span></button>
+        </div>
+      </div>`;
+    bindSuggestions();
+    renderHistory();
   }
 
   setAuthScreenVisible(false);
