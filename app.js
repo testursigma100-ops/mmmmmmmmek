@@ -15,6 +15,10 @@ let authUserId = null;
 function getHistoryStorageKey(){
   return authUserId ? `${historyKey}_${authUserId}` : null;
 }
+
+function purgeLegacyGlobalHistory(){
+  try { localStorage.removeItem(historyKey); } catch {}
+}
 const attachBtn = document.getElementById('attachBtn');
 const fileInput = document.getElementById('fileInput');
 const attachmentPreview = document.getElementById('attachmentPreview');
@@ -434,6 +438,7 @@ function showAuthStatus(message = '', isError = false){
 function showUser(user){
   if(!user){
     authUserId = null;
+    purgeLegacyGlobalHistory();
     resetChat(false);
     setAuthScreenVisible(true);
     googleLoginWrap.hidden = false;
@@ -448,6 +453,7 @@ function showUser(user){
   authUserId = user.id;
 
   if(changedUser){
+    purgeLegacyGlobalHistory();
     messages = [];
     selectedFiles = [];
     interactionId = null;
