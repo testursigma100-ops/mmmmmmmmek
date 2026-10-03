@@ -86,7 +86,9 @@ function saveHistory(title){
     });
   }
 
-  localStorage.setItem(historyKey, JSON.stringify(items.slice(0,30)));
+  const storageKey = getHistoryStorageKey();
+  if(!storageKey) return;
+  localStorage.setItem(storageKey, JSON.stringify(items.slice(0,30)));
   renderHistory();
 }
 
